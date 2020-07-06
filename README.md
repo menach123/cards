@@ -15,14 +15,18 @@ Current Status:
     <li>Create game parent class</li>    
     <li>Create player class</li>
     <li>Create Texas Holden  subclass</li>
+    <li>Creating hand strength test. </li>
+    <li>Creating a hand from player and common</li>
 </ul>
 
 To Do:
 
 <ul>
-    <li>Creating hand strength test. </li>
-    <li>Simulation class</li>
-
+    <li>Simulation class<ul>
+            <li>10000 simulations</li>
+        <li>List entry function</li>
+        </ul>
+</ul>
 
 ```python
 
