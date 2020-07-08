@@ -27,28 +27,6 @@ names = ['ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', '
 standard_order = {order: i for i, order in enumerate(names)}
 high_card_order = {order: i for i, order in enumerate(names)}
 high_card_order['ace'] = len(names)
-def simulation(common_cards= None, player_cards= None, players = 10):
-    
-    
-    game = TexasHoldThem(players)
-    if common_cards:
-        for i in common_cards:
-            game.setCommonPileCard(i[0], i[1])
-
-    if player_cards:
-        for i in player_cards:
-            game.setPlayerOneCard(i[0], i[1], i[2])
-    
-    game.fill()
-
-    for i in range(len(game.player_list)):
-        game.testPlayer(game.player_list[i])
-
-    return game.player_list[0].rank == max([player.rank for player in game.player_list])
-
-def win_percentage(common_cards= None, player_cards= None, players = 10):
-
-    return sum([simulation(common_cards, player_cards, players = 10) for i in range(10000)])/10000
 
 deck = {}
 for i, suit in enumerate(suits):
@@ -106,10 +84,10 @@ class Game:
         
         if max == None:
             
-            return False
+            return list
 
         if max <= len(list):
-            return False
+            return list
         
         deal = []
         
@@ -257,6 +235,7 @@ class Game:
         Change rank of player base on previous rank
         """
         if rank > player.rank:
+            # print(rank)
             player.rank = rank
             player.full_hand = hand
         return None  
@@ -266,7 +245,7 @@ class Game:
         Run thru all possible hands and assign the highest ranking hand. 
         """
         for i, player in enumerate(self.player_list):
-            print(player.no)
+            # print(player.no)
             for j, hand in enumerate(player.hands):
                 
                 flush = self.testForFlush(hand)
@@ -324,6 +303,7 @@ class Game:
                 two = [key for key in multiple.keys() if multiple[key] == 2] 
                 
                 if two != []:
+                    
                     if len(two) == 2:
                         two = sorted(two)
                         rank = (2, two[-1]*100 + two[-2])
@@ -334,15 +314,15 @@ class Game:
                             break
                         rank = (1, two[-1])
                         self.checkRank(rank, self.player_list[i], hand)
-                
+                    
                 if self.player_list[i].rank > (1,0):
                     break
                 
                 rank = (0, self.findHighOrder(player.hands[j])[-1])
                 self.checkRank(rank, self.player_list[i], hand)
                 
-            print(self.player_list[i].rank)
-            print(self.player_list[i].full_hand)
+            # print(self.player_list[i].rank)
+            # print(self.player_list[i].full_hand)
         
         pass
 

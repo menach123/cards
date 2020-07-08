@@ -36,14 +36,9 @@ class TexasHoldThem(Game):
         
         for i in range(len(self.player_list)):
             self.player_list[i].cards = self.fillPile(self.player_list[i].cards, self.max_hand_size)
+            
             self.player_list[i].hands = [self.player_list[i].cards + combo for combo in self.common_combinations]
-            self.player_list[i].flushes = [self.testForFlush(hand) for hand in self.player_list[i].hands]
-            self.player_list[i].straights = [self.testForFlush(hand) for hand in self.player_list[i].hands]
-            straight_flush = [(flush) & (straight) for flush, straight in zip(self.player_list[i].flushes, self.player_list[i].straights)]
-            if sum(straight_flush) > 0:
-                rank
-
-            self.player_list[i].multiples = [self.testForMultiples(hand) for hand in self.player_list[i].hands]
+            
         pass
 
     def win_loss(self, player1_common_cards):
@@ -51,16 +46,17 @@ class TexasHoldThem(Game):
         Input: list of card tuples. The first 2 is player 1, and the next 5 are the common cards. There are will be 0, 3, 4, and 5  common card inputed.   
         """
         for i, card in enumerate(player1_common_cards):
+            
             if i < 2:
                 self.setPlayerOneCard(0 ,card[0], card[1])
             
             else: 
                 self.setCommonPileCard(card[0], card[1])
             
-            self.fill()
-
+        self.fill()
+        self.assignRank()
         rank = [player.rank for player in self.player_list]
-        return self.player_list[0].test['rank'] == max(rank)
+        return self.player_list[0].rank == max(rank)
 
 
       
