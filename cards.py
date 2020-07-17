@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 
+
+# dictionary with the ranks and names of the hands in key value pairs. 
 hand_rank = {8: 'Straight flush',
                 7: 'Four of a kind',
                 6: 'Full house',
@@ -22,25 +24,32 @@ hand_rank = {8: 'Straight flush',
 
 
 
-suits = ['clubs', 'diamonds', 'hearts', 'spades']
-names = ['ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king']
-standard_order = {order: i for i, order in enumerate(names)}
-high_card_order = {order: i for i, order in enumerate(names)}
-high_card_order['ace'] = len(names)
+suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades'] # list of suits
+names = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'] # list of card names
+standard_order = {order: i for i, order in enumerate(names)} # dictionary of names associated with an Ace low order
+high_card_order = {order: i for i, order in enumerate(names)} # dictionary of names associated with an Ace high order
+high_card_order['ace'] = len(names) # changed the Ace's order to the highest value. 
 
+# creating a dictionary the representing the cards in a deck
 deck = {}
 for i, suit in enumerate(suits):
-    for j, name in enumerate(names):
+    for name in names:
+        # keys are 1 by 2 tuple with the first number representing the suit and the second number 
         deck[(i,high_card_order[name])] ={'suit': suit, 
-                      'name': name, 
+                      'name': name + " of "+ suit , 
                       'order':standard_order[name], 
                       'high_order': high_card_order[name]}
+                  
 
 
 
 
 
 class Game:
+    """
+    Class builds methods for a 5 card poker game simulation.
+    """
+    
    
 
     def __init__(self, number_players):
@@ -58,8 +67,14 @@ class Game:
         Input: Number of cards to be deal.
         Output: Returns list of card dictionaries. 
         """
-        if card:
-            index = self.unused_cards.index(card)
+        
+        if card != None:
+            if card in self.unused_cards:
+                index = self.unused_cards.index(card)
+            else:
+                print('Card not in deck.')
+                return None
+                
         else:
             index = int(np.random.choice([i for i in range(len(self.unused_cards))], 1))
         new = self.unused_cards[index]
@@ -70,6 +85,9 @@ class Game:
     def setMaxes(self, common_max =None, hand_size = 5):
         """
         Setting the amount in a individual player's hand  or common cards
+        Input: common_max, the maximum number of common or community cards
+                 hand_size, the maximum number of card in an indvidual players hand.
+        Output: None
         """
         self.max_common_pile = common_max
         self.max_hand_size = hand_size
@@ -78,24 +96,22 @@ class Game:
     def fillPile(self, list, max):
         """
         Fill pile or hand with randomly selected card from the unused pile.
-        Input: list- Pile to add to, max- maximum cards allow in pile
-        Output: None
+        Input: list- Pile to add to
+                max- maximum cards allow in pile
+        Output: altered list
         """
         
-        if max == None:
-            
-            return list
-
-        if max <= len(list):
+        #Checking to see the hand size is higher than max level
+        if (max == None) | (max <= len(list)):
             return list
         
-        deal = []
-        
+        #Pulling cards to deal 
+        deal = []        
         for i in range(max - len(list)):
             deal.append(self.dealCard())
         
+        #Adding dealt cards to the pile
         for card in deal:
-            
             list.append(card)
         
         return list
@@ -106,24 +122,31 @@ class Game:
         Input: None
         Output: None
         """
+        # cycle through players
         for i in range(len(self.player_list)):
-
+            # fill player's hands and sorted the card tuples
             self.player_list[i].cards = self.fillPile(self.player_list[i].cards, self.max_hand_size)
+            self.player_list[i].cards = sort(self.player_list[i].cards)
 
         pass
 
     def setPlayerOneCard(self, no, suit, name):
         """
-        Add card to player's hand.
+        Add known card to player's hand.
         Input: no- which player, suit- Suit of the Card, name- Which card
         Output: None
         """
+        
+        #Check to see if current hand size is at the max level
         if self.max_hand_size < len(self.player_list[no].cards):
-            print('Hand is full (2 cards).')
+            print(F'Hand is full ({self.max_hand_size} cards).')
             return None 
-        card = self.dealCard((suit, name))
-        self.player_list[no].cards.append(card)
-        # self.unused_cards = [new_card for new_card in self.unused_cards if new_card != card]
+        
+        
+        card = self.dealCard((suit, name)) # pull one card into from deck
+        self.player_list[no].cards.append(card) # deal into the hand
+        self.player_list[no].cards = sorted(self.player_list[no].cards) # sort card tuples
+        
         
         return self.player_list[no].cards
 
@@ -134,10 +157,11 @@ class Game:
         Output: None
         """
         if self.max_common_pile < len(self.common):
-            print('Common Cards are full (5 cards).')
+            print(f'Common Cards are full ({self.max_common_pile} cards).')
             return None
         card = self.dealCard((suit, name))
         self.common.append(card)
+        self.common = sorted(self.common)
         # self.unused_cards = [new_card for new_card in self.unused_cards if new_card != card]
         
         return self.common

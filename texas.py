@@ -25,6 +25,7 @@ class TexasHoldThem(Game):
         
         # generating all 3 hand combinations
         self.common_combinations = [list(i) for i in itertools.combinations(self.common, 3)]
+        self.common_combinations = [sorted(hand) for hand in self.common_combinations]
         
 
 
@@ -45,11 +46,11 @@ class TexasHoldThem(Game):
         """
         Input: list of card tuples. The first 2 is player 1, and the next 5 are the common cards. There are will be 0, 3, 4, and 5  common card inputed.   
         """
+        
         for i, card in enumerate(player1_common_cards):
             
             if i < 2:
                 self.setPlayerOneCard(0 ,card[0], card[1])
-            
             else: 
                 self.setCommonPileCard(card[0], card[1])
             
