@@ -4,7 +4,7 @@ from texas import TexasHoldThem
 
 class DBManager():
 
-    def __init__ (self, dbName):
+    def __init__ (self, dbName = 'sqlite3 texas_holdem.db'):
         self.dbName = dbName
         pass
 
@@ -30,8 +30,8 @@ class DBManager():
         """
         query = "PRAGMA table_info(hands);"
         columns =  [tuple_[1] for tuple_ in self.query(query)]         
-        for col in columns:
-            print(col)
+        # for col in columns:
+        #     print(col)
         return columns
 
     def insertHandScenario(self, hand, show = False, close = True):
@@ -63,19 +63,11 @@ class DBManager():
 
     def showProbablity(self, hand, just_probabilty = True):
 
-        query = self.convertHandToColumns(hand)
+        cards = str(sorted(hand))
         
-        columns = conn.showColumnName()
-
-        pull = 'SELECT win_probabilty FROM hands WHERE ' if just_probabilty else 'SELECT * FROM hands WHERE '
-        for i, j in zip(columns, query):
-            if j == None:
-                pull += f" {i} is NULL AND"
-            else:
-                pull += f" {i} = {j} AND"
-            
-        pull= pull[:-4]
-
+        pull = f'SELECT probability FROM hands WHERE cards = "{cards}"'
+        
+        print(pull)
         return self.query(pull)
 
 

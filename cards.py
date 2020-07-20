@@ -24,11 +24,11 @@ hand_rank = {8: 'Straight flush',
 
 
 
-suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades'] # list of suits
+suits = ['Hearts', 'Clubs', 'Diamonds', 'Spades'] # list of suits
 names = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'] # list of card names
-standard_order = {order: i for i, order in enumerate(names)} # dictionary of names associated with an Ace low order
-high_card_order = {order: i for i, order in enumerate(names)} # dictionary of names associated with an Ace high order
-high_card_order['ace'] = len(names) # changed the Ace's order to the highest value. 
+standard_order = {order: i+ 1 for i, order in enumerate(names)} # dictionary of names associated with an Ace low order
+high_card_order = {order: i+ 1 for i, order in enumerate(names)} # dictionary of names associated with an Ace high order
+high_card_order['Ace'] = 14 # changed the Ace's order to the highest value. 
 
 # creating a dictionary the representing the cards in a deck
 deck = {}
@@ -38,7 +38,9 @@ for i, suit in enumerate(suits):
         deck[(i,high_card_order[name])] ={'suit': suit, 
                       'name': name + " of "+ suit , 
                       'order':standard_order[name], 
-                      'high_order': high_card_order[name]}
+                      'high_order': high_card_order[name],
+
+                      'picture': f"{name[0] if name[0] != '1' else '10' }{suit[0]}"}
                   
 
 
@@ -52,13 +54,15 @@ class Game:
     
    
 
-    def __init__(self, number_players):
+    def __init__(self, number_players = 10, dropped_players = 0):
         
         self.unused_cards = [key for key in deck.keys()]
         self.player_list = [Player(i) for i in range(number_players)]
         self.common = []
         self.common_combinations ={}
         self.setMaxes()
+        # Players that discard hands
+        self.dropped_players = [-(i+1) for i in range(dropped_players)] if dropped_players < number_players else [] 
 
 
     def dealCard(self, card = None):
@@ -201,23 +205,12 @@ class Game:
 
     def findHighOrder(self, hand):
         """
-        Output the highest card
+        Output the sorted order of the hand
         Input : hand - list of card dictionaries
         Output: Maximum order in the hand
         """
         return sorted([deck[card]['high_order'] for card in hand])
 
-    def pullHighCard(self, hand):
-        """
-        Pull high card
-        """
-        return self.findHighOrder(hand)[-1]
-
-    def pullStraightHighCard(self, hand):
-        """
-        Selecting the second highest card because of the dual nature of the ace
-        """
-        return self.findHighOrder(hand)[-2]
 
     def testForStraight(self, hand):
         """
@@ -252,8 +245,17 @@ class Game:
         """
         return (flush) & (straight)
 
-
-
+    def findingHighCard(self, hand):
+        """
+        Finding a high card in a hand. Checking where there is a straight and taking the second highest card.
+        """
+        high_order = self.findHighOrder(hand)
+        if (high_order[-1] == 14) & (self.testForStraight(hand)):
+            high_card = high_order[-2]
+        else:
+            high_card = high_order[-1]
+        return high_card
+       
     def checkRank(self, rank, player, hand):
         """
         Change rank of player base on previous rank
@@ -272,82 +274,90 @@ class Game:
             # print(player.no)
             for j, hand in enumerate(player.hands):
                 
-                flush = self.testForFlush(hand)
-                straight = self.testForStraight(hand)
+
+                flush = self.testForFlush(hand) # checking for a flush
+                straight = self.testForStraight(hand) # checking for a straight
+                high_card = self.findingHighCard(hand)
+                # checking the flush
                 if self.testForStraightFlush(flush, straight):
-                    rank = (8, self.pullStraightHighCard(hand))
+                    
+                    
+                    rank = (8, high_card)
                     self.checkRank(rank, self.player_list[i], hand)    
-                        
-                if self.player_list[i].rank > (8,0):
+
+                # Breaking loop base on current ranking        
+                if self.player_list[i].rank > (8,0): 
                     break
                     
-                multiple = self.testForMultiples(hand)
+                multiple = self.testForMultiples(hand) # creating vectorization of orders of cards
                             
-                four = [key for key in multiple.keys() if multiple[key] == 4] 
                 
+                four = [key for key in multiple.keys() if multiple[key] == 4] # find 4 of kinds
+            
                 if four != []:
-                    rank = (7, four[-1])
+
+                    rank = (7, four[-1]*100+ high_card) # create a rank with multiples order time 100 and adding the high card value
                     self.checkRank(rank, self.player_list[i], hand)
-                        
+
+                # Breaking loop base on current ranking        
                 if self.player_list[i].rank > (7,0):
                     break
                 
-                three = [key for key in multiple.keys() if multiple[key] == 3] 
-                two = [key for key in multiple.keys() if multiple[key] == 2] 
+                three = [key for key in multiple.keys() if multiple[key] == 3]  # find 3 of kind
+                two = [key for key in multiple.keys() if multiple[key] == 2] # find pairs
                 
                 if (three != []) & (two != []):
-                    rank = (6, three[-1]*100 +two[-1])
+                    rank = (6, three[-1]*100 +two[-1]) # create a rank with 3 of kind order time 100 and adding the pair order
                     self.checkRank(rank, self.player_list[i], hand)
-                    
+
+                # Breaking loop base on current ranking    
                 if self.player_list[i].rank > (6,0):
                     break
                 
                 if flush:
-                    rank = (5, self.findHighOrder(hand)[-1])
+                    rank = (5, high_card)
                     self.checkRank(rank, self.player_list[i], hand)
-                        
+
+                # Breaking loop base on current ranking        
                 if self.player_list[i].rank > (5,0):
                     break
                     
-                if (straight):
-                    rank = (4, self.findHighOrder(hand)[-2])
+                if straight:
+                    rank = (4, high_card)
                     self.checkRank(rank, self.player_list[i], hand)
                 
-                
+                # Breaking loop base on current ranking
                 if self.player_list[i].rank > (4,0):
                     break
                     
                 if three != []:
-                    rank = (3, three[-1])
+                    rank = (3, three[-1]*100 + high_card) # create a rank with 3 of kind order time 100 and adding the high card
                     self.checkRank(rank, self.player_list[i], hand)
                 
+                # Breaking loop base on current ranking
                 if self.player_list[i].rank > (3,0):
                     break
-                    
-                two = [key for key in multiple.keys() if multiple[key] == 2] 
-                
+                                   
                 if two != []:
                     
                     if len(two) == 2:
                         two = sorted(two)
-                        rank = (2, two[-1]*100 + two[-2])
+                        rank = (2, two[-1]*1000 + two[-2]*100 + high_card) # create a rank with high pair times 1000, adding low pair times 100, and adding the high card
                         self.checkRank(rank, self.player_list[i], hand)
                         
                     else:
+                        # Breaking loop base on current ranking
                         if self.player_list[i].rank > (2,0):
                             break
-                        rank = (1, two[-1])
+                        rank = (1, two[-1]* 100+ high_card) # create a rank with pair times 100, and adding the high card
                         self.checkRank(rank, self.player_list[i], hand)
-                    
+
+                # Breaking loop base on current ranking    
                 if self.player_list[i].rank > (1,0):
                     break
                 
                 rank = (0, self.findHighOrder(player.hands[j])[-1])
                 self.checkRank(rank, self.player_list[i], hand)
-                
-            # print(self.player_list[i].rank)
-            # print(self.player_list[i].full_hand)
-        
         pass
 
 
@@ -359,12 +369,13 @@ class Player:
         self.no = number
         self.name = None
         self.test = {}  #test dictionary
-        self.full_hand = []
+        self.best_hand = None
         self.rank = (0,0)
         self.hands = []
         self.multiples = None
         self.flushes = None
         self.straights = None
+        
         
         
 
