@@ -1,6 +1,7 @@
 import numpy as np
 import itertools
-from cards import Game, deck, Player
+from cards import Game, deck, Player, stringcode_card
+from sqlconnection import DBManager
 
 
 
@@ -10,7 +11,7 @@ class TexasHoldThem(Game):
         """
         Texas Hold Them rules. 
         """
-        
+        self.conn = DBManager() # instatiate SQL connection
         
         self.max_common_pile = common_max
         self.max_hand_size = hand_size
@@ -60,4 +61,35 @@ class TexasHoldThem(Game):
         return self.player_list[0].rank == max(rank)
 
 
-      
+    def makingSimulation(self, hand, simulations = 10, players = 10):
+        """
+        Running certain number of games and record win probability of the hand relative to the win probability of one player.
+        """
+        sims = []
+        for i in range(simulations):
+
+            self.__init__() 
+            sims.append(self.win_loss(hand))
+
+
+        
+        return (sum(sims)/ simulations)/ (1/players)
+
+    def samplingSimulation(self, hand, samples = 1000):
+        """
+        Running mulitple simulations and averaging the output to determine the best win score for the hand. 
+        """
+        results = []
+        for i in range(samples):
+            results.append(self.makingSimulation(hand))
+        
+
+        return round(sum(results)/ samples, ndigits=2)  
+
+    def findProb10(self, player_no):
+        """
+        Return win probabilty relative to win probability of one player in the game. The score 
+        """
+        cards = self.player_list[player_no].cards +self.common
+        cards = ' '.join([stringcode_card[card] for card in cards])
+

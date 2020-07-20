@@ -42,7 +42,7 @@ for i, suit in enumerate(suits):
 
                       'picture': f"{name[0] if name[0] != '1' else '10' }{suit[0]}"}
                   
-
+stringcode_card = {deck[key]['picture']: key for key in deck.keys()}
 
 
 

@@ -87,6 +87,18 @@ class DBManager():
                 query.append(i[1])
         return query
         
+    def loadEmptyRecord(self,primary_key_list, value_strings_list, primary_key_name = 'cards'):
+        """
+        Add new record to database. First checking to see if there is an existing record. Then run a INSERT INTO command if the record does not exist. 
+        """
+        for i, key in enumerate(primary_key_list):
+                # creating SQL query to check if the record exists
+                query  = f'select count(*) from hands where {primary_key_name} ="{key}"' 
+                if conn.query(query)[0][0] == 0:
+                    #creating SQL query to insert new record
+                    query = f'INSERT INTO hands VALUES ("{key}", {value_strings_list})'
+                    conn.query(query)
+        pass
     
         
 
