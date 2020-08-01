@@ -5,14 +5,15 @@ from sqlconnection import DBManager
 
 
 
+
 class TexasHoldThem(Game):
     
     def setMaxes(self, common_max =5, hand_size = 2):
         """
         Texas Hold Them rules. 
         """
-        self.conn = DBManager() # instatiate SQL connection
         
+        self.connection = DBManager()
         self.max_common_pile = common_max
         self.max_hand_size = hand_size
         self.really_hand = 5
@@ -61,7 +62,20 @@ class TexasHoldThem(Game):
         return self.player_list[0].rank == max(rank)
 
 
-    def makingSimulation(self, hand, simulations = 10, players = 10):
+    def addPlayerAndCommon(self, player1_common_cards):
+        """
+        """
+        
+        for i, card in enumerate(player1_common_cards):
+            
+            if i < 2:
+                self.setPlayerOneCard(0 ,card[0], card[1])
+            else: 
+                self.setCommonPileCard(card[0], card[1])
+        pass
+
+
+    def makingSimulation(self, hand, simulations = 50, players = 10):
         """
         Running certain number of games and record win probability of the hand relative to the win probability of one player.
         """
@@ -75,13 +89,13 @@ class TexasHoldThem(Game):
         
         return (sum(sims)/ simulations)/ (1/players)
 
-    def samplingSimulation(self, hand, samples = 1000):
+    def samplingSimulation(self, hand, samples = 1000, simulations = 50, players = 10):
         """
         Running mulitple simulations and averaging the output to determine the best win score for the hand. 
         """
         results = []
         for i in range(samples):
-            results.append(self.makingSimulation(hand))
+            results.append(self.makingSimulation(hand, simulations = 50, players = 10))
         
 
         return round(sum(results)/ samples, ndigits=2)  
@@ -90,6 +104,40 @@ class TexasHoldThem(Game):
         """
         Return win probabilty relative to win probability of one player in the game. The score 
         """
-        cards = self.player_list[player_no].cards +self.common
-        cards = ' '.join([stringcode_card[card] for card in cards])
+        hand = self.player_list[player_no].cards +self.common
+        hand = sorted(hand)
+        if self.connection.checkCard(hand):
+            return self.connection.showProbablity(hand)
+        
+        prob10 = self.samplingSimulation(hand, samples= 100, simulations = 10)
+
+        # self.connection.insertHandScenario(hand, prob10)
+        return prob10
+
+    def pullHands(self):
+        """
+        Pulling all hands recorded in the database
+        """
+        cards = self.connection.query('SELECT cards from hands')
+
+        # hands = [self.connection.convertStringCodeToTuple(card) for card in cards]
+        hands = []
+        for card in cards:
+            
+            
+            hands.append(self.connection.convertStringCodeToTuple(card[0]))
+        return hands
+
+    def enterHand(self):
+        """
+        """
+        first = input()
+        second = input()
+        cards
+        print(self.findProb10)
+
+
+    
+
+        
 

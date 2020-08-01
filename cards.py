@@ -265,6 +265,103 @@ class Game:
             player.rank = rank
             player.full_hand = hand
         return None  
+    
+    def changeRank(self, rank, newrank):
+        """
+        Change generic rank, output new rank
+        """
+        return newrank if rank < newrank else rank
+
+    def rankHand(self, hand, player=0):
+        """
+        """
+        rank = (0,0)
+        i = player
+        flush = self.testForFlush(hand) # checking for a flush
+        straight = self.testForStraight(hand) # checking for a straight
+        high_card = self.findingHighCard(hand)
+        # checking the flush
+        if self.testForStraightFlush(flush, straight):
+            
+            
+            rank = self.changeRank(rank, (8, high_card))
+               
+
+        # Breaking loop base on current ranking        
+        if rank > (8,0): 
+            return rank
+            
+        multiple = self.testForMultiples(hand) # creating vectorization of orders of cards
+                    
+        
+        four = [key for key in multiple.keys() if multiple[key] == 4] # find 4 of kinds
+    
+        if four != []:
+            rank = self.changeRank(rank, (7, four[-1]*100+ high_card))
+            
+
+        # Breaking loop base on current ranking        
+        if rank > (7,0):
+            return rank
+        
+        three = [key for key in multiple.keys() if multiple[key] == 3]  # find 3 of kind
+        two = [key for key in multiple.keys() if multiple[key] == 2] # find pairs
+        
+        if (three != []) & (two != []):
+            rank = self.changeRank(rank, (6, three[-1]*100 +two[-1]))
+             # create a rank with 3 of kind order time 100 and adding the pair order
+            
+
+        # Breaking loop base on current ranking    
+        if rank > (6,0):
+            return rank
+        
+        if flush:
+            
+            rank = self.changeRank(rank, (5, high_card))
+
+        # Breaking loop base on current ranking        
+        if rank > (5,0):
+            return rank
+            
+        if straight:
+            rank = self.changeRank(rank, (4, high_card))
+        
+        # Breaking loop base on current ranking
+        if rank > (4,0):
+            return rank
+            
+        if three != []:
+            # create a rank with 3 of kind order time 100 and adding the high card
+            rank = self.changeRank(rank, (3, three[-1]*100 + high_card))
+        
+        # Breaking loop base on current ranking
+        if rank > (3,0):
+            return rank
+                            
+        if two != []:
+            
+            if len(two) == 2:
+                two = sorted(two)
+                # create a rank with high pair times 1000, adding low pair times 100, and adding the high card
+                rank = self.changeRank(rank, (2, two[-1]*1000 + two[-2]*100 + high_card))
+                
+            else:
+                # Breaking loop base on current ranking
+                if rank > (2,0):
+                    return rank
+                # create a rank with pair times 100, and adding the high card
+                rank = self.changeRank(rank, (1, two[-1]* 100+ high_card))
+
+        # Breaking loop base on current ranking    
+        if rank > (1,0):
+            return rank
+        
+        
+        rank = self.changeRank(rank, (0, self.findHighOrder(hand)[-1]))
+        return rank
+
+
 
     def assignRank(self):  
         """
@@ -375,6 +472,7 @@ class Player:
         self.multiples = None
         self.flushes = None
         self.straights = None
+        self.winscore = 0
         
         
         
